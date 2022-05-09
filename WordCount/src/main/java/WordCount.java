@@ -17,23 +17,26 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 public class WordCount {
 
     public static class TokenizerMapper
-            extends Mapper<Object, Text, Text, IntWritable>{
+            extends Mapper<Object, Text, Text, IntWritable>{//intWritable is hadoop int format
 
         private final static IntWritable one = new IntWritable(1);
         private Text word = new Text();
 
+
+        //mapper need convert in String
         public void map(Object key, Text value, Context context
         ) throws IOException, InterruptedException {
             StringTokenizer itr = new StringTokenizer(value.toString());
             while (itr.hasMoreTokens()) {
+                //hello
                 word.set(itr.nextToken());
                 context.write(word, one);
+                //count one :(hello, 1)
             }
         }
     }
 
-    public static class IntSumReducer
-            extends Reducer<Text,IntWritable,Text,IntWritable> {
+    public static class IntSumReducer extends Reducer<Text,IntWritable,Text,IntWritable> {
         private IntWritable result = new IntWritable();
 
         public void reduce(Text key, Iterable<IntWritable> values,
@@ -50,15 +53,22 @@ public class WordCount {
 
     public static void main(String[] args) throws Exception {
         Configuration conf = new Configuration();
+        //获取job 对象
         Job job = Job.getInstance(conf, "word count");
+        //设置jar 存储位置
         job.setJarByClass(WordCount.class);
+        //关联map和reduce
         job.setMapperClass(TokenizerMapper.class);
-        job.setCombinerClass(IntSumReducer.class);
+        //job.setCombinerClass(IntSumReducer.class);
         job.setReducerClass(IntSumReducer.class);
+        //设置最终阶段输出数据k,v类型
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(IntWritable.class);
-        FileInputFormat.addInputPath(job, new Path(args[0]));
+
+        FileInputFormat.addInputPath(job, new Path("input"));
         FileOutputFormat.setOutputPath(job, new Path(args[1]));
+
+        //verbose is true, then print some message
         System.exit(job.waitForCompletion(true) ? 0 : 1);
     }
 }
